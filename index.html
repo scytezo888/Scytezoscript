@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScyteZO | Portal Script & Executor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ========== STYLE UNTUK HALAMAN PORTAL (LIKE & SUBSCRIBE) ========== */
+        .portal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .portal-container.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .portal-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        #portal-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .portal-btn {
+            padding: 16px 32px;
+            border: none;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 250px;
+            margin: 10px auto;
+        }
+
+        .portal-btn-like {
+            background-color: #1a237e;
+            color: white;
+            box-shadow: 0 0 12px #6ec3ff, 0 0 24px #6ec3ff, 0 0 36px #6ec3ff;
+            animation: neon-pulse 2s infinite alternate;
+        }
+
+        .portal-btn-subscribe {
+            background-color: #1a237e;
+            color: white;
+            box-shadow: 0 0 12px #6ec3ff, 0 0 24px #6ec3ff, 0 0 36px #6ec3ff;
+            animation: neon-pulse 2s infinite alternate;
+        }
+
+        .portal-btn-website {
+            background-color: #1a237e;
+            color: white;
+            padding: 20px 40px;
+            font-size: 22px;
+            box-shadow: 0 0 12px #6ec3ff, 0 0 24px #6ec3ff, 0 0 36px #6ec3ff;
+            animation: neon-pulse 2s infinite alternate;
+            margin-top: 15px;
+            width: 280px;
+        }
+
+        .portal-btn-website:disabled {
+            background-color: #333366;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+            animation: none;
+        }
+
+        @keyframes neon-pulse {
+            from {
+                box-shadow: 0 0 8px #6ec3ff, 0 0 16px #6ec3ff, 0 0 24px #6ec3ff;
+            }
+            to {
+                box-shadow: 0 0 16px #6ec3ff, 0 0 32px #6ec3ff, 0 0 48px #6ec3ff;
+            }
+        }
+
+        .portal-btn-like:hover, .portal-btn-subscribe:hover {
+            background-color: #0d1452;
+            transform: translateY(-4px);
+        }
+
+        .portal-btn-website:hover:not(:disabled) {
+            background-color: #0d1452;
+            transform: translateY(-4px);
+        }
+
+        .portal-icon {
+            margin-right: 12px;
+            font-size: 22px;
+        }
+
+        .portal-counter {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #6ec3ff;
+            text-shadow: 0 0 8px #6ec3ff, 0 0 16px #6ec3ff;
+            animation: text-glow 1.5s infinite alternate;
+        }
+
+        @keyframes text-glow {
+            from {
+                text-shadow: 0 0 8px #6ec3ff;
+            }
+            to {
+                text-shadow: 0 0 16px #6ec3ff, 0 0 24px #6ec3ff;
+            }
+        }
+
+        .portal-clicked {
+            opacity: 0.7;
+            cursor: not-allowed;
+            animation: none !important;
+            box-shadow: 0 0 8px rgba(110, 195, 255, 0.5) !important;
+        }
+
+        /* ========== STYLE UNTUK HALAMAN UTAMA SCYTEZO ========== */
+        .main-website {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .main-website.show {
+            display: block;
+            opacity: 1;
+        }
+
+        body {
+            background-color: #000000;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
+            color: #f0f0f0;
+            line-height: 1.5;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Background partikel untuk website utama */
+        .particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(0,200,255,0.8), rgba(0,100,255,0));
+            border-radius: 50%;
+            opacity: 0;
+            animation: floatParticle linear infinite;
+        }
+
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% {
+                transform: translateY(-20vh) translateX(var(--x-offset, 100px)) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Teks melayang */
+        .floating-text {
+            position: fixed;
+            pointer-events: none;
+            z-index: 0;
+            font-weight: 800;
+            font-size: 4rem;
+            opacity: 0.15;
+            white-space: nowrap;
+            animation: floatText 20s ease-in-out infinite;
+            text-shadow: 0 0 20px rgba(0,200,255,0.3);
+        }
+
+        .floating-scyte {
+            background: linear-gradient(135deg, #00c8ff, #0080ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            left: 10%;
+        }
+
+        .floating-zo {
+            background: linear-gradient(135deg, #ff00cc, #6600ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            right: 10%;
+        }
+
+        @keyframes floatText {
+            0% { transform: translateY(10vh) translateX(0) rotate(0deg); opacity: 0.08; }
+            25% { transform: translateY(30vh) translateX(5vw) rotate(3deg); opacity: 0.2; }
+            50% { transform: translateY(50vh) translateX(-3vw) rotate(-2deg); opacity: 0.15; }
+            75% { transform: translateY(70vh) translateX(4vw) rotate(4deg); opacity: 0.2; }
+            100% { transform: translateY(90vh) translateX(0) rotate(0deg); opacity: 0.08; }
+        }
+
+        .floating-scyte-1 { top: 5%; animation-duration: 22s; font-size: 3.5rem; left: 5%; }
+        .floating-scyte-2 { top: 25%; animation-duration: 18s; font-size: 4.5rem; left: 15%; animation-delay: -5s; }
+        .floating-scyte-3 { top: 55%; animation-duration: 25s; font-size: 3rem; left: 8%; animation-delay: -10s; }
+        .floating-scyte-4 { top: 75%; animation-duration: 20s; font-size: 5rem; left: 3%; animation-delay: -15s; }
+        .floating-zo-1 { top: 12%; animation-duration: 24s; font-size: 4rem; right: 8%; }
+        .floating-zo-2 { top: 40%; animation-duration: 19s; font-size: 3.5rem; right: 15%; animation-delay: -7s; }
+        .floating-zo-3 { top: 65%; animation-duration: 21s; font-size: 5rem; right: 5%; animation-delay: -12s; }
+        .floating-zo-4 { top: 85%; animation-duration: 23s; font-size: 3rem; right: 12%; animation-delay: -3s; }
+
+        /* Navbar dan konten lainnya ScyteZO */
+        .navbar {
+            background-color: #0a0a0a;
+            border-bottom: 1px solid #222;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            padding: 0.85rem 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand {
+            font-size: 1.7rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e0e0e0, #aaaaaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            z-index: 101;
+            position: relative;
+        }
+        .brand span {
+            color: #ffffff;
+            background: none;
+            font-weight: 800;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+            z-index: 101;
+            position: relative;
+        }
+
+        .nav-link {
+            color: #dddddd;
+            text-decoration: none;
+            font-size: 1.18rem;
+            font-weight: 500;
+            padding: 0.5rem 0.2rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background: #00c8ff;
+            transition: width 0.25s ease;
+        }
+
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: #00c8ff;
+        }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+            background: transparent;
+            border: none;
+            padding: 0.4rem;
+            z-index: 101;
+            position: relative;
+        }
+        .menu-toggle span {
+            width: 26px;
+            height: 2px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 2rem 4rem 2rem;
+            animation: fadeUp 0.4s ease-out;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .page.active-page {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .card {
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(3px);
+            border-radius: 32px;
+            padding: 2rem;
+            border: 2px solid;
+            transition: all 0.3s ease;
+        }
+
+        #homePage .card {
+            border-color: #ffffff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.4), inset 0 0 10px rgba(255, 255, 255, 0.05);
+        }
+        #homePage .card:hover {
+            border-color: #ffffff;
+            box-shadow: 0 0 45px rgba(255, 255, 255, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        #scriptPage .card {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4), inset 0 0 10px rgba(0, 255, 136, 0.05);
+        }
+        #scriptPage .card:hover {
+            border-color: #00ff88;
+            box-shadow: 0 0 45px rgba(0, 255, 136, 0.8), inset 0 0 15px rgba(0, 255, 136, 0.1);
+            transform: translateY(-3px);
+        }
+
+        #executorPage .card {
+            border-color: #0044ff;
+            box-shadow: 0 0 20px rgba(0, 68, 255, 0.4), inset 0 0 10px rgba(0, 68, 255, 0.05);
+        }
+        #executorPage .card:hover {
+            border-color: #0088ff;
+            box-shadow: 0 0 45px rgba(0, 136, 255, 0.8), inset 0 0 15px rgba(0, 136, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        h1 {
+            font-size: 2.7rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(125deg, #ffffff, #b0b0b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #00c8ff;
+            padding-left: 1rem;
+        }
+
+        .desc-text {
+            font-size: 1.1rem;
+            color: #cccccc;
+            margin: 1.5rem 0;
+        }
+
+        button, .script-card, .menu-card, .download-btn, .youtube-card {
+            transition: all 0.25s ease-in-out;
+        }
+        button:hover, .script-card:hover, .menu-card:hover, .download-btn:hover, .youtube-card:hover {
+            background: linear-gradient(135deg, #00c8ff, #0080ff) !important;
+            color: #ffffff !important;
+            border-color: #80e0ff !important;
+            transform: scale(1.02);
+            box-shadow: 0 0 22px #00aaff;
+        }
+
+        .featured-menus {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .menu-card {
+            background: linear-gradient(145deg, #101010, #050505);
+            border: 1px solid #2c2c2c;
+            border-radius: 48px;
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            padding: 2rem 1.8rem;
+            cursor: pointer;
+        }
+
+        .menu-card .menu-icon {
+            font-size: 4rem;
+            display: block;
+        }
+
+        .menu-card .menu-title {
+            font-size: 2.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .youtube-card {
+            background: linear-gradient(145deg, #1a0a0a, #0a0505);
+            border: 1px solid #ff4444;
+            border-radius: 48px;
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            padding: 1.8rem;
+            cursor: pointer;
+            margin: 1rem auto;
+            box-shadow: 0 0 15px rgba(255, 68, 68, 0.3);
+            transition: all 0.3s ease;
+        }
+        .youtube-card:hover {
+            box-shadow: 0 0 35px rgba(255, 68, 68, 0.7);
+            transform: scale(1.02);
+        }
+        .youtube-card .youtube-icon {
+            font-size: 3.5rem;
+        }
+        .youtube-card .youtube-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ff4444;
+        }
+
+        .scripts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            margin-top: 1.5rem;
+        }
+        .script-card {
+            background: #0a0a0a;
+            border-radius: 28px;
+            padding: 1.2rem 1.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            border: 2px solid;
+        }
+        .script-card:hover {
+            transform: translateX(5px) scale(1.01);
+        }
+        .script-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .script-icon {
+            font-size: 1.8rem;
+        }
+        .copy-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .script-card[data-script="zombie"] { 
+            border-color: #00ff00; 
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+        .script-card[data-script="survive"] { 
+            border-color: #ff8800; 
+            box-shadow: 0 0 15px rgba(255, 136, 0, 0.4);
+        }
+        .script-card[data-script="99malam"] { 
+            border-color: #cd853f; 
+            box-shadow: 0 0 15px rgba(205, 133, 63, 0.4);
+        }
+        .script-card[data-script="slime"] { 
+            border-color: #00ccff; 
+            box-shadow: 0 0 15px rgba(0, 204, 255, 0.4);
+        }
+        .script-card[data-script="bloxfruit"] { 
+            border-color: #ff3333; 
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+            cursor: default;
+        }
+        .coming-soon-badge {
+            background: #ff6600;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active-modal {
+            display: flex;
+        }
+        .modal-content {
+            background: #0a0a0a;
+            border-radius: 32px;
+            max-width: 550px;
+            width: 90%;
+            padding: 2rem;
+            text-align: center;
+            animation: pulse 1.5s infinite alternate;
+        }
+        #zombieModal .modal-content {
+            border: 2px solid #00ff00;
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.5);
+        }
+        #surviveModal .modal-content {
+            border: 2px solid #ff8800;
+            box-shadow: 0 0 50px rgba(255, 136, 0, 0.5);
+        }
+        #modal99malam .modal-content {
+            border: 2px solid #cd853f;
+            box-shadow: 0 0 50px rgba(205, 133, 63, 0.5);
+        }
+        #modalSlime .modal-content {
+            border: 2px solid #00ccff;
+            box-shadow: 0 0 50px rgba(0, 204, 255, 0.5);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.3); }
+            100% { box-shadow: 0 0 60px rgba(0, 255, 0, 0.8); }
+        }
+        .modal-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .script-box {
+            background: #050505;
+            border-radius: 20px;
+            padding: 1.2rem;
+            margin: 1rem 0;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.85rem;
+            word-break: break-all;
+            white-space: pre-wrap;
+            border: 1px solid;
+        }
+        .modal-content button {
+            background: #1f3a5f;
+            border: none;
+            padding: 0.8rem 1.8rem;
+            border-radius: 44px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        .close-modal {
+            background: #3a1a1a;
+        }
+        .close-modal:hover {
+            background: #ff4444 !important;
+        }
+
+        .download-card {
+            background: #0a0c0f;
+            border-radius: 32px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid #0044ff;
+            box-shadow: 0 0 20px rgba(0, 68, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .download-btn {
+            background: #2c6e2c;
+            padding: 0.9rem 2rem;
+            font-size: 1.1rem;
+            display: inline-block;
+            border: none;
+            border-radius: 44px;
+            color: white;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1e1e;
+            padding: 0.6rem 1.4rem;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            border: 1px solid #3f3f3f;
+            z-index: 1200;
+            pointer-events: none;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid #151515;
+            color: #5a5a5a;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background: #0a0a0aee;
+                backdrop-filter: blur(12px);
+                width: 70%;
+                height: calc(100% - 70px);
+                transition: left 0.3s ease;
+                padding: 2rem 1.5rem;
+                gap: 1.8rem;
+                border-right: 1px solid #2a2a2a;
+                z-index: 999;
+            }
+            .nav-menu.active-menu {
+                left: 0;
+            }
+            .menu-toggle {
+                display: flex;
+            }
+            .script-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.8rem;
+            }
+            .floating-text {
+                font-size: 2rem !important;
+                opacity: 0.08 !important;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<!-- HALAMAN PORTAL (LIKE & SUBSCRIBE) -->
+<div id="portalContainer" class="portal-container">
+    <div id="portal-particles"></div>
+    <div class="portal-content">
+        <div class="portal-counter" id="portalCounter">0/2</div>
+        <button id="portalSubscribeBtn" class="portal-btn portal-btn-subscribe">
+            <i class="portal-icon fas fa-bell"></i> Subscribe
+        </button>
+        <button id="portalLikeBtn" class="portal-btn portal-btn-like">
+            <i class="portal-icon fas fa-thumbs-up"></i> Like
+        </button>
+        <button id="portalWebsiteBtn" class="portal-btn portal-btn-website" disabled>
+            <i class="portal-icon fas fa-external-link-alt"></i> Go to Website
+        </button>
+    </div>
+</div>
+
+<!-- HALAMAN UTAMA SCYTEZO -->
+<div id="mainWebsite" class="main-website">
+    <div class="particles-bg" id="particlesContainer"></div>
+
+    <div class="floating-text floating-scyte floating-scyte-1">Scyte</div>
+    <div class="floating-text floating-scyte floating-scyte-2">Scyte</div>
+    <div class="floating-text floating-scyte floating-scyte-3">Scyte</div>
+    <div class="floating-text floating-scyte floating-scyte-4">Scyte</div>
+    <div class="floating-text floating-zo floating-zo-1">Zo</div>
+    <div class="floating-text floating-zo floating-zo-2">Zo</div>
+    <div class="floating-text floating-zo floating-zo-3">Zo</div>
+    <div class="floating-text floating-zo floating-zo-4">Zo</div>
+
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="brand">Scyte<span>ZO</span></div>
+            <button class="menu-toggle" id="mobileMenuBtn">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#" class="nav-link" data-page="home">🏠 Home</a></li>
+                <li><a href="#" class="nav-link" data-page="script">📜 Script</a></li>
+                <li><a href="#" class="nav-link" data-page="executor">⚡ Executor</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div id="homePage" class="page active-page">
+            <div class="card">
+                <h1>Welcome to ScyteZO</h1>
+                <p class="desc-text">Di website ini banyak script script berbagai game dari Roblox dan executor Delta.</p>
+                <div class="youtube-card" id="youtubeMenuBtn">
+                    <div class="youtube-icon">▶️📺</div>
+                    <div class="youtube-title">Youtube scytezo in here</div>
+                </div>
+                <div class="featured-menus">
+                    <div class="menu-card" id="directScriptBtn">
+                        <div class="menu-icon">📜</div>
+                        <div class="menu-title">Script Library</div>
+                    </div>
+                    <div class="menu-card" id="directExecutorBtn">
+                        <div class="menu-icon">⚡</div>
+                        <div class="menu-title">Delta Executor</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scriptPage" class="page">
+            <div class="card">
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <span style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #fff, #aaa); -webkit-background-clip: text; background-clip: text; color: transparent;">ScyteZO</span>
+                    <p style="color: #aaa; margin-top: 0.5rem;">Klik card script untuk menyalin kode</p>
+                </div>
+                <div class="scripts-container">
+                    <div class="script-card" data-script="zombie">
+                        <div class="script-name"><span class="script-icon">🧟</span> Zombie Arena</div>
+                        <div class="copy-badge">📋 CLICK TO VIEW</div>
+                    </div>
+                    <div class="script-card" data-script="survive">
+                        <div class="script-name"><span class="script-icon">🏜️</span> Survive The Apocalypse</div>
+                        <div class="copy-badge">📋 CLICK TO VIEW</div>
+                    </div>
+                    <div class="script-card" data-script="99malam">
+                        <div class="script-name"><span class="script-icon">🌙</span> 99 Malam</div>
+                        <div class="copy-badge">📋 CLICK TO VIEW</div>
+                    </div>
+                    <div class="script-card" data-script="slime">
+                        <div class="script-name"><span class="script-icon">🟢</span> Slime RNG</div>
+                        <div class="copy-badge">📋 CLICK TO VIEW</div>
+                    </div>
+                    <div class="script-card" data-script="bloxfruit">
+                        <div class="script-name"><span class="script-icon">🍎</span> Blox Fruit</div>
+                        <div class="coming-soon-badge">⏳ COMING SOON</div>
+                    </div>
+                </div>
+                <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: #666;">
+                    💡 Setiap script siap pakai untuk Delta Executor
+                </p>
+            </div>
+        </div>
+
+        <div id="executorPage" class="page">
+            <div class="card">
+                <h2>⚡ Delta Executor</h2>
+                <p class="desc-text">Delta executor ringan untuk menjalankan script Roblox.</p>
+                <div class="download-card">
+                    <h3>📥 Delta Executor Download Here</h3>
+                    <p style="color: #bbbbbb; margin-top: 0.3rem;">Versi terbaru 2.5 | Support semua script Roblox</p>
+                    <button id="deltaDownloadBtn" class="download-btn" onclick="window.open('https://delta.filenetwork.vip/android.html', '_blank')">⬇️ DOWNLOAD DELTA EXECUTOR ⬇️</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>ScyteZO — Script Roblox & Delta Executor | Neon Theme</footer>
+    <div id="toastMsg" class="toast-msg">Notifikasi</div>
+</div>
+
+<!-- MODAL-MODAL -->
+<div id="zombieModal" class="modal"><div class="modal-content"><h3>🧟 Zombie Arena</h3><div class="top-text">✨ Script Ultimate Zombie Arena - Auto Kill, Speed, ESP ✨</div><div class="script-box">loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Foxname_SZA.lua"))()</div><button id="copyZombieModalBtn">📋 COPY SCRIPT</button><button class="close-modal" id="closeZombieModalBtn">❌ TUTUP</button></div></div>
+<div id="surviveModal" class="modal"><div class="modal-content"><h3>🏜️ Survive The Apocalypse</h3><div class="top-text">✨ Top 1 Script for now in Survive The Apocalypse ZHUB, key in komen ✨</div><div class="script-box">loadstring(game:HttpGet("https://raw.githubusercontent.com/Notzephyr/UIX/refs/heads/main/Zombie.lua"))()</div><button id="copySurviveBtn">📋 COPY SCRIPT</button><button class="close-modal" id="closeSurviveModalBtn">❌ TUTUP</button></div></div>
+<div id="modal99malam" class="modal"><div class="modal-content"><h3>🌙 99 Malam</h3><div class="top-text">✨ Script 99 Malam - Auto Click, Auto Upgrade, All Features ✨</div><div class="script-box">loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/loader.lua", true))()</div><button id="copy99malamBtn">📋 COPY SCRIPT</button><button class="close-modal" id="close99malamBtn">❌ TUTUP</button></div></div>
+<div id="modalSlime" class="modal"><div class="modal-content"><h3>🟢 Slime RNG</h3><div class="top-text">✨ Script Slime RNG - Auto Roll, Auto Claim Rewards, Best Luck ✨</div><div class="script-box">loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"))()</div><button id="copySlimeBtn">📋 COPY SCRIPT</button><button class="close-modal" id="closeSlimeBtn">❌ TUTUP</button></div></div>
+
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+    // ========== PORTAL LOGIC ==========
+    let clickedButtons = 0;
+    const portalContainer = document.getElementById('portalContainer');
+    const mainWebsite = document.getElementById('mainWebsite');
+    const portalCounter = document.getElementById('portalCounter');
+    const subscribeBtn = document.getElementById('portalSubscribeBtn');
+    const likeBtn = document.getElementById('portalLikeBtn');
+    const websiteBtn = document.getElementById('portalWebsiteBtn');
+
+    function updatePortalCounter() {
+        clickedButtons++;
+        portalCounter.textContent = `${clickedButtons}/2`;
+        if (clickedButtons === 2) {
+            portalCounter.style.color = "#6ec3ff";
+            portalCounter.style.textShadow = "0 0 16px #6ec3ff, 0 0 32px #6ec3ff";
+            websiteBtn.disabled = false;
+        }
+    }
+
+    subscribeBtn.addEventListener('click', function() {
+        if (!this.classList.contains('portal-clicked')) {
+            window.open('https://www.youtube.com/@BlackScyteKaizo', '_blank');
+            this.classList.add('portal-clicked');
+            updatePortalCounter();
+        }
+    });
+
+    likeBtn.addEventListener('click', function() {
+        if (!this.classList.contains('portal-clicked')) {
+            window.open('https://youtu.be/07hS8G4Hch4?si=gIgMDWLiNGxGlRfY', '_blank');
+            this.classList.add('portal-clicked');
+            updatePortalCounter();
+        }
+    });
+
+    websiteBtn.addEventListener('click', function() {
+        if (!websiteBtn.disabled) {
+            portalContainer.classList.add('hide');
+            setTimeout(() => {
+                portalContainer.style.display = 'none';
+                mainWebsite.classList.add('show');
+                initializeMainWebsite();
+            }, 500);
+        }
+    });
+
+    // Portal Particles
+    particlesJS("portal-particles", {
+        particles: {
+            number: { value: 60, density: { enable: true, value_area: 800 } },
+            color: { value: "#6ec3ff" },
+            shape: { type: "circle" },
+            opacity: { value: 0.5, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1 } },
+            size: { value: 3, random: true, anim: { enable: true, speed: 2, size_min: 0.1 } },
+            line_linked: { enable: true, distance: 150, color: "#6ec3ff", opacity: 0.2, width: 1 },
+            move: { enable: true, speed: 1, direction: "none", random: true, straight: false, out_mode: "out" }
+        },
+        interactivity: { events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" } } }
+    });
+
+    // ========== MAIN WEBSITE LOGIC ==========
+    function initializeMainWebsite() {
+        // Particles untuk website utama
+        const container = document.getElementById('particlesContainer');
+        for (let i = 0; i < 80; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            const size = Math.random() * 8 + 2;
+            const colors = ['#00c8ff', '#00ff88', '#ff00cc', '#ff8800', '#0044ff'];
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.background = `radial-gradient(circle, ${colors[Math.floor(Math.random() * colors.length)]}, rgba(0,0,0,0))`;
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.setProperty('--x-offset', (Math.random() - 0.5) * 200 + 'px');
+            particle.style.animationDuration = Math.random() * 8 + 4 + 's';
+            particle.style.animationDelay = Math.random() * 10 + 's';
+            container.appendChild(particle);
+        }
+
+        const pages = {
+            home: document.getElementById('homePage'),
+            script: document.getElementById('scriptPage'),
+            executor: document.getElementById('executorPage')
+        };
+        const navLinks = document.querySelectorAll('.nav-link');
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const navMenu = document.getElementById('navMenu');
+        const toast = document.getElementById('toastMsg');
+
+        function showToastMsg(message, duration = 2000) {
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, duration);
+        }
+
+        function copyToClipboard(text, successMsg) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => showToastMsg(successMsg));
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToastMsg(successMsg);
+            }
+        }
+
+        function setActivePage(pageId) {
+            Object.values(pages).forEach(page => page.classList.remove('active-page'));
+            pages[pageId].classList.add('active-page');
+            navLinks.forEach(link => {
+                if (link.getAttribute('data-page') === pageId) link.classList.add('active');
+                else link.classList.remove('active');
+            });
+            if (window.innerWidth <= 700 && navMenu.classList.contains('active-menu')) navMenu.classList.remove('active-menu');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const pageId = link.getAttribute('data-page');
+                if (pageId && pages[pageId]) setActivePage(pageId);
+            });
+        });
+
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => navMenu.classList.toggle('active-menu'));
+        }
+
+        document.getElementById('youtubeMenuBtn')?.addEventListener('click', () => {
+            window.open('https://www.youtube.com/@BlackScyteKaizo', '_blank');
+            showToastMsg("🔴 Membuka channel YouTube ScyteZO...");
+        });
+
+        document.querySelectorAll('.script-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const key = card.getAttribute('data-script');
+                if (key === 'zombie') document.getElementById('zombieModal').classList.add('active-modal');
+                else if (key === 'survive') document.getElementById('surviveModal').classList.add('active-modal');
+                else if (key === '99malam') document.getElementById('modal99malam').classList.add('active-modal');
+                else if (key === 'slime') document.getElementById('modalSlime').classList.add('active-modal');
+                else if (key === 'bloxfruit') showToastMsg("⏳ Blox Fruit Script Coming Soon!", 2500);
+            });
+        });
+
+        const copyButtons = [
+            { btn: 'copyZombieModalBtn', script: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/caomod2077/Script/refs/heads/main/Foxname_SZA.lua"))()', msg: '✅ Script Zombie Arena berhasil disalin!', modal: 'zombieModal' },
+            { btn: 'copySurviveBtn', script: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/Notzephyr/UIX/refs/heads/main/Zombie.lua"))()', msg: '✅ Script Survive The Apocalypse berhasil disalin!', modal: 'surviveModal' },
+            { btn: 'copy99malamBtn', script: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/loader.lua", true))()', msg: '✅ Script 99 Malam berhasil disalin!', modal: 'modal99malam' },
+            { btn: 'copySlimeBtn', script: 'loadstring(game:HttpGet("https://api.luarmor.net/files/v4/loaders/359e97f8618e9008afe5f496184ebb7c.lua"))()', msg: '✅ Script Slime RNG berhasil disalin!', modal: 'modalSlime' }
+        ];
+
+        copyButtons.forEach(item => {
+            document.getElementById(item.btn)?.addEventListener('click', () => {
+                copyToClipboard(item.script, item.msg);
+                document.getElementById(item.modal).classList.remove('active-modal');
+            });
+        });
+
+        const closeButtons = ['closeZombieModalBtn', 'closeSurviveModalBtn', 'close99malamBtn', 'closeSlimeBtn'];
+        const modals = ['zombieModal', 'surviveModal', 'modal99malam', 'modalSlime'];
+        closeButtons.forEach((btn, i) => {
+            document.getElementById(btn)?.addEventListener('click', () => {
+                document.getElementById(modals[i]).classList.remove('active-modal');
+            });
+        });
+        modals.forEach(modalId => {
+            document.getElementById(modalId)?.addEventListener('click', (e) => {
+                if (e.target === document.getElementById(modalId)) document.getElementById(modalId).classList.remove('active-modal');
+            });
+        });
+
+        document.getElementById('directScriptBtn')?.addEventListener('click', () => setActivePage('script'));
+        document.getElementById('directExecutorBtn')?.addEventListener('click', () => setActivePage('executor'));
+
+        setActivePage('home');
+    }
+</script>
+</body>
+</html>
